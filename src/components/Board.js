@@ -2,24 +2,35 @@ import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import Cell from './Cell';
 
-const Board = ({ puzzle, originalPuzzle, onCellPress, selectedCell, colorScheme }) => {
+const Board = ({ puzzle, originalPuzzle, notesData, onCellPress, selectedCell, errorCells, colorScheme }) => {
   const styles = getStyles(colorScheme);
   return (
     <View style={styles.board}>
       {puzzle.map((row, rowIndex) => (
         <View key={rowIndex} style={styles.row}>
-          {row.map((num, colIndex) => (
-            <Cell
-              key={colIndex}
-              number={num}
-              isEditable={originalPuzzle[rowIndex][colIndex] === 0}
-              isSelected={selectedCell && selectedCell.row === rowIndex && selectedCell.col === colIndex}
-              onPress={() => onCellPress(rowIndex, colIndex)}
-              rowIndex={rowIndex}
-              colIndex={colIndex}
-              colorScheme={colorScheme}
-            />
-          ))}
+          {row.map((num, colIndex) => {
+            let isHighlightedRowCol = false;
+            if (selectedCell) {
+              if (selectedCell.row === rowIndex || selectedCell.col === colIndex) {
+                isHighlightedRowCol = true;
+              }
+            }
+            return (
+              <Cell
+                key={colIndex}
+                number={num}
+                notes={notesData && notesData[rowIndex] && notesData[rowIndex][colIndex] ? notesData[rowIndex][colIndex] : []}
+                isEditable={originalPuzzle[rowIndex][colIndex] === 0}
+                isSelected={selectedCell && selectedCell.row === rowIndex && selectedCell.col === colIndex}
+                isError={errorCells.some(cell => cell.row === rowIndex && cell.col === colIndex)}
+                isHighlightedRowCol={isHighlightedRowCol}
+                onPress={() => onCellPress(rowIndex, colIndex)}
+                rowIndex={rowIndex}
+                colIndex={colIndex}
+                colorScheme={colorScheme}
+              />
+            );
+          })}
         </View>
       ))}
     </View>
@@ -28,7 +39,6 @@ const Board = ({ puzzle, originalPuzzle, onCellPress, selectedCell, colorScheme 
 
 const windowWidth = Dimensions.get('window').width;
 const boardSize = windowWidth > 400 ? 360 : windowWidth * 0.9;
-const cellSize = boardSize / 9;
 
 const getStyles = (colorScheme) => StyleSheet.create({
   board: {
