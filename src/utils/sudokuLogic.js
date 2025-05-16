@@ -1,3 +1,5 @@
+// se nao fosse a internet, isso aqui seria um arquivo de 2000 linhas
+// tudo comentado para nao esquecer tudo que aprendi e nao ter que pesquisar de novo.
 const GRID_SIZE = 9;
 const BOX_SIZE = 3;
 
@@ -76,50 +78,67 @@ export function generateSudokuSolution() {
 
 // Função para criar um quebra-cabeça removendo números
 // A dificuldade determina quantos números são removidos.
-// Easy: ~35-40 células preenchidas
-// Medium: ~30-34 células preenchidas
-// Hard: ~25-29 células preenchidas
-// Hardcore: ~20-24 células preenchidas
+// Easy: ~35-40 células preenchidas (41-46 removidas)
+// Medium: ~30-34 células preenchidas (47-51 removidas)
+// Hard: ~25-29 células preenchidas (52-56 removidas)
+// Hardcore (Expert): ~17-20 células preenchidas (61-64 removidas)
 export function createPuzzle(solution, difficulty = 'medium') {
   const puzzle = solution.map(row => [...row]);
-  let cellsToRemove;
+  let cellsToLeave;
 
   switch (difficulty.toLowerCase()) {
     case 'easy':
-      cellsToRemove = GRID_SIZE * GRID_SIZE - (Math.floor(Math.random() * 6) + 35); // ~41-46 removidas
+      cellsToLeave = Math.floor(Math.random() * 6) + 35; // Deixa 35 a 40 células
       break;
     case 'hard':
-      cellsToRemove = GRID_SIZE * GRID_SIZE - (Math.floor(Math.random() * 5) + 25); // ~52-56 removidas
+      cellsToLeave = Math.floor(Math.random() * 5) + 25; // Deixa 25 a 29 células
       break;
-    case 'hardcore':
-      cellsToRemove = GRID_SIZE * GRID_SIZE - (Math.floor(Math.random() * 5) + 20); // ~57-61 removidas
+    case 'hardcore': // Modo Expert
+      cellsToLeave = Math.floor(Math.random() * 4) + 17; // Deixa 17 a 20 células
       break;
     case 'medium':
     default:
-      cellsToRemove = GRID_SIZE * GRID_SIZE - (Math.floor(Math.random() * 5) + 30); // ~47-51 removidas
+      cellsToLeave = Math.floor(Math.random() * 5) + 30; // Deixa 30 a 34 células
       break;
   }
 
-  let attempts = cellsToRemove;
-  while (attempts > 0) {
-    const row = Math.floor(Math.random() * GRID_SIZE);
-    const col = Math.floor(Math.random() * GRID_SIZE);
+  let cellsToRemove = GRID_SIZE * GRID_SIZE - cellsToLeave;
+  let attempts = cellsToRemove * 2; // Aumentar tentativas para garantir que o número desejado seja removido
+  let removedCount = 0;
 
-    if (puzzle[row][col] !== 0) {
-      const backup = puzzle[row][col];
-      puzzle[row][col] = 0;
-
-      // Para garantir solução única, seria necessário um solver aqui.
-      // preciso trabalhar melhor na logica para garantir que o zedokao tenha uma solução única.
-
-      attempts--;
+  // caso eu tente colocar isso aqui em prod, preciso melhorar o algoritmo pra ficar mais robusto
+  // e garantir que o número de tentativas não seja tão alto
+  // e que o número de células removidas seja o correto
+  const cells = [];
+  for(let r=0; r<GRID_SIZE; r++) {
+    for(let c=0; c<GRID_SIZE; c++) {
+        cells.push({r,c});
     }
   }
+  shuffleArray(cells); // Embaralhar a ordem de remoção das células
+
+  for(let i=0; i < cells.length && removedCount < cellsToRemove; i++){
+    const {r, c} = cells[i];
+    if (puzzle[r][c] !== 0) {
+        // const backup = puzzle[r][c]; // Para verificar unicidade, precisaria de um solver
+        puzzle[r][c] = 0;
+        removedCount++;
+        // Aqui idealmente teria que chamar uma função hasUniqueSolution(puzzleCopy)
+        // Se não tiver solução única, puzzle[r][c] = backup; e removedCount--;
+        // mas isso é complexo e não está implementado
+        // para simplicficar, vamos assumir que a remoção é válida kk
+    }
+  }
+
+  // Se nao tiver removido o suficiente, tem que tentar de novo
+  // Mas para esta simplificação vamos deixar assim e que o shuffle faça o trabalho
+
   return puzzle;
 }
 
 // Função para verificar se o tabuleiro está completo e correto
 export function checkSolution(grid, solution) {
+  if (!grid || !solution) return false;
   for (let i = 0; i < GRID_SIZE; i++) {
     for (let j = 0; j < GRID_SIZE; j++) {
       if (grid[i][j] === 0 || grid[i][j] !== solution[i][j]) {
@@ -130,8 +149,7 @@ export function checkSolution(grid, solution) {
   return true;
 }
 
-// Função para verificar se um movimento é válido 
-// com os números já presentes no tabuleiro do jogador.
+// Função para verificar se um movimento é válido
 export function isValidMove(grid, row, col, num) {
     if (num === 0) return true; // Permitir apagar
 
@@ -161,3 +179,10 @@ export function isValidMove(grid, row, col, num) {
     }
     return true;
 }
+
+// enfim, isso aqui precisa de muito mais trabalho
+// mas por enquanto é só pra ter uma ideia de como funciona
+// e como eu posso fazer isso em react
+// os comentarios sao para minha pessoa
+// e para quem for ler isso depois
+// e para o futuro eu mesmo (y)
